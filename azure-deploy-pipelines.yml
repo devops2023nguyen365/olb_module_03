@@ -1,0 +1,275 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+pool:
+  name: Default
+
+stages:
+- stage: DEV
+  displayName: DEV deployment
+  jobs:
+  - deployment: VMDeploy
+    environment:  
+      name: 'DEV04'
+      resourceType: VirtualMachine
+    strategy:
+     runOnce:
+       deploy:
+        steps:
+          - script: echo Hello, world!
+            displayName: 'Run a one-line script'
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'specific'
+              project: 'eed4de9a-e549-439a-a1dc-dc6ffdc1cff1'
+              pipeline: '1'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              downloadType: 'single'
+              artifactName: 'drop'
+              downloadPath: '$(System.ArtifactsDirectory)'
+              checkDownloadedFiles: true
+
+          - powershell: |
+              # Stop IIS
+              Stop-Service -Name "W3SVC" -Force
+              Write-Host "IIS has been stopped."
+            displayName: 'Stop IIS'
+            
+          - powershell: |
+              # Define source and destination paths
+              $currentTimestamp = Get-Date -Format "-yyyy-MM-dd-HH-mm-ss"
+              $sourcePath = 'C:\Fiserv\Architect\Build\2023\2268New'
+              $destinationPath = 'D:\Backup\Portal' + $currentTimestamp + '\2268'
+
+              # Check if the destination folder exists, and create it if not
+              if (-Not (Test-Path -Path $destinationPath -PathType Container)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force
+              }
+
+              # Copy the contents of the source folder to the destination folder
+              Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
+            displayName: 'Backup OLB folder to D:\Backup\ folder'
+
+          - powershell: |
+              # Define source and destination folders
+              $sourcePath = "$(System.ArtifactsDirectory)/drop/unzipped/"
+              $destinationPath = "C:\Fiserv\Architect\Build\2023\2268New\Portal\hlm"
+              
+              # Get a list of all subfolders in the source folder
+              $subfolders = Get-ChildItem -Path $sourceFolder -Directory
+
+              # Loop through each subfolder and copy it to the destination
+              foreach ($subfolder in $subfolders) {
+                  Copy-Item -Path $sourcePath/$subfolder.Name -Destination $destinationPath -Recurse -Force
+              }
+            displayName: 'Deploy package to HLM folder'
+
+          - powershell: |
+              # Start IIS
+              Start-Service -Name "W3SVC"
+              Write-Host "IIS has been started."
+            displayName: 'Start IIS'
+
+- stage: UAT
+  displayName: UAT deployment
+  jobs:
+  - deployment: VMDeploy
+    environment:  
+      name: 'UAT'
+      resourceType: VirtualMachine
+    strategy:
+     runOnce:
+       deploy:
+        steps:
+          - script: echo Hello, world!
+            displayName: 'Run a one-line script'
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'specific'
+              project: 'eed4de9a-e549-439a-a1dc-dc6ffdc1cff1'
+              pipeline: '1'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              downloadType: 'single'
+              artifactName: 'drop'
+              downloadPath: '$(System.ArtifactsDirectory)'
+              checkDownloadedFiles: true
+
+          - powershell: |
+              # Stop IIS
+              # Stop-Service -Name "W3SVC" -Force
+              Write-Host "IIS has been stopped."
+            displayName: 'Stop IIS'
+            
+          - powershell: |
+              # Define source and destination paths
+              $currentTimestamp = Get-Date -Format "-yyyy-MM-dd-HH-mm-ss"
+              $sourcePath = 'C:\Fiserv\Architect\Build\2023\2268New'
+              $destinationPath = 'D:\Backup\Portal' + $currentTimestamp + '\2268'
+
+              # Check if the destination folder exists, and create it if not
+              if (-Not (Test-Path -Path $destinationPath -PathType Container)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force
+              }
+
+              # Copy the contents of the source folder to the destination folder
+              # Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
+            displayName: 'Backup OLB folder to D:\Backup\ folder'
+
+          - powershell: |
+              # Define source and destination folders
+              $sourcePath = "$(System.ArtifactsDirectory)/drop/unzipped/"
+              $destinationPath = "C:\Fiserv\Architect\Build\2023\2268New\Portal\hlm"
+              
+              # Get a list of all subfolders in the source folder
+              $subfolders = Get-ChildItem -Path $sourceFolder -Directory
+
+              # Loop through each subfolder and copy it to the destination
+              foreach ($subfolder in $subfolders) {
+                  # Copy-Item -Path $sourcePath/$subfolder.Name -Destination $destinationPath -Recurse -Force
+              }
+            displayName: 'Deploy package to HLM folder'
+
+          - powershell: |
+              # Start IIS
+              # Start-Service -Name "W3SVC"
+              Write-Host "IIS has been started."
+            displayName: 'Start IIS'
+
+- stage: DR
+  displayName: DR deployment
+  jobs:
+  - deployment: VMDeploy
+    environment:  
+      name: 'DR'
+      resourceType: VirtualMachine
+    strategy:
+     runOnce:
+       deploy:
+        steps:
+          - script: echo Hello, world!
+            displayName: 'Run a one-line script'
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'specific'
+              project: 'eed4de9a-e549-439a-a1dc-dc6ffdc1cff1'
+              pipeline: '1'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              downloadType: 'single'
+              artifactName: 'drop'
+              downloadPath: '$(System.ArtifactsDirectory)'
+              checkDownloadedFiles: true
+
+          - powershell: |
+              # Stop IIS
+              # Stop-Service -Name "W3SVC" -Force
+              Write-Host "IIS has been stopped."
+            displayName: 'Stop IIS'
+            
+          - powershell: |
+              # Define source and destination paths
+              $currentTimestamp = Get-Date -Format "-yyyy-MM-dd-HH-mm-ss"
+              $sourcePath = 'C:\Fiserv\Architect\Build\2023\2268New'
+              $destinationPath = 'D:\Backup\Portal' + $currentTimestamp + '\2268'
+
+              # Check if the destination folder exists, and create it if not
+              if (-Not (Test-Path -Path $destinationPath -PathType Container)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force
+              }
+
+              # Copy the contents of the source folder to the destination folder
+              # Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
+            displayName: 'Backup OLB folder to D:\Backup\ folder'
+
+          - powershell: |
+              # Define source and destination folders
+              $sourcePath = "$(System.ArtifactsDirectory)/drop/unzipped/"
+              $destinationPath = "C:\Fiserv\Architect\Build\2023\2268New\Portal\hlm"
+              
+              # Get a list of all subfolders in the source folder
+              $subfolders = Get-ChildItem -Path $sourceFolder -Directory
+
+              # Loop through each subfolder and copy it to the destination
+              foreach ($subfolder in $subfolders) {
+                  # Copy-Item -Path $sourcePath/$subfolder.Name -Destination $destinationPath -Recurse -Force
+              }
+            displayName: 'Deploy package to HLM folder'
+
+          - powershell: |
+              # Start IIS
+              # Start-Service -Name "W3SVC"
+              Write-Host "IIS has been started."
+            displayName: 'Start IIS'
+
+- stage: PROD
+  displayName: PROD deployment
+  jobs:
+  - deployment: VMDeploy
+    environment:  
+      name: 'PROD'
+      resourceType: VirtualMachine
+    strategy:
+     runOnce:
+       deploy:
+        steps:
+          - script: echo Hello, world!
+            displayName: 'Run a one-line script'
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'specific'
+              project: 'eed4de9a-e549-439a-a1dc-dc6ffdc1cff1'
+              pipeline: '1'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              downloadType: 'single'
+              artifactName: 'drop'
+              downloadPath: '$(System.ArtifactsDirectory)'
+              checkDownloadedFiles: true
+
+          - powershell: |
+              # Stop IIS
+              # Stop-Service -Name "W3SVC" -Force
+              Write-Host "IIS has been stopped."
+            displayName: 'Stop IIS'
+            
+          - powershell: |
+              # Define source and destination paths
+              $currentTimestamp = Get-Date -Format "-yyyy-MM-dd-HH-mm-ss"
+              $sourcePath = 'C:\Fiserv\Architect\Build\2023\2268New'
+              $destinationPath = 'D:\Backup\Portal' + $currentTimestamp + '\2268'
+
+              # Check if the destination folder exists, and create it if not
+              if (-Not (Test-Path -Path $destinationPath -PathType Container)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force
+              }
+
+              # Copy the contents of the source folder to the destination folder
+              # Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
+            displayName: 'Backup OLB folder to D:\Backup\ folder'
+
+          - powershell: |
+              # Define source and destination folders
+              $sourcePath = "$(System.ArtifactsDirectory)/drop/unzipped/"
+              $destinationPath = "C:\Fiserv\Architect\Build\2023\2268New\Portal\hlm"
+              
+              # Get a list of all subfolders in the source folder
+              $subfolders = Get-ChildItem -Path $sourceFolder -Directory
+
+              # Loop through each subfolder and copy it to the destination
+              foreach ($subfolder in $subfolders) {
+                  # Copy-Item -Path $sourcePath/$subfolder.Name -Destination $destinationPath -Recurse -Force
+              }
+            displayName: 'Deploy package to HLM folder'
+
+          - powershell: |
+              # Start IIS
+              # Start-Service -Name "W3SVC"
+              Write-Host "IIS has been started."
+            displayName: 'Start IIS'

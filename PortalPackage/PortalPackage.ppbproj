@@ -1,0 +1,23 @@
+﻿<?xml version="1.0"?>
+<PortalPackage>
+	<ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+		<string>Debug</string>
+		<string>Release</string>
+	</ArrayOfString>
+	<ArrayOfPackageItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+		<PackageItem xsi:type="PackageFolder" Name="bin">
+			<PackageItems xsi:type="PackageFile" Name="PortalPackage.dll" RelativePath=".\bin\$(Platform)\$(Configuration)\PortalPackage.dll" />
+			<PackageItems xsi:type="PackageFile" Name="PortalPackage.pdb" RelativePath=".\bin\$(Platform)\$(Configuration)\PortalPackage.pdb" />
+			<PackageItems xsi:type="PackageFolder" Name="es">
+				<PackageItems xsi:type="PackageFile" Name="PortalPackage.resources.dll" RelativePath=".\bin\$(Platform)\$(Configuration)\es\PortalPackage.resources.dll" />
+			</PackageItems>
+		</PackageItem>
+		<PackageItem xsi:type="PackageFileSpecification" Name="*.ascx" RelativePath="." SearchPattern="*.ascx" IncludeSubFolders="false" />
+	</ArrayOfPackageItem>
+	<PortalManifestDataSet xmlns="http://www.idsus.com/PortalManifestDataSet.xsd">
+		<Package ID="10c57f99-77f6-4b50-be2a-1c1bfe2ad716" FriendlyName="PortalPackage" Root="PortalPackage" Author="Fiserv, Inc." Copyright="Copyright 2023 Fiserv, Inc." InstallIconUrl="~/images/Fiserv.png">
+			<!-- ModuleDefinition, ServiceProviderDefinition, etc. -->
+			<ModuleDefinition ID="F59C118D-CAD1-4C6B-A98F-0D38FA7AF59D" FriendlyName="Sample Module" DesktopControl="SampleModule.ascx" Description="" />
+		</Package>
+	</PortalManifestDataSet>
+</PortalPackage>

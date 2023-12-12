@@ -1,0 +1,116 @@
+# ASP.NET
+# Build and test ASP.NET projects.
+# Add steps that publish symbols, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
+
+trigger:
+- main
+
+pool:
+  name: Default
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+
+- task: SonarCloudPrepare@1
+  displayName: Prepare SonarQube Analysis Configuration
+  inputs:
+    SonarCloud: 'SonarCloud'
+    organization: 'demo102'
+    scannerMode: 'MSBuild'
+    projectKey: 'demo102_olb_module_01'
+    projectName: 'olb_module_01'
+
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: SonarCloudAnalyze@1
+  displayName: SonarQube Analysis
+  inputs:
+    jdkversion: 'JAVA_HOME_17_X64'
+
+- task: SonarCloudPublish@1
+  displayName: Publish SonarQube Quality Gate Report
+  inputs:
+    pollingTimeoutSec: '300'
+
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- powershell: |
+    # Find all .hlm files recursively in $(System.DefaultWorkingDirectory)
+    $hlmFiles = Get-ChildItem -Path "$(System.DefaultWorkingDirectory)" -Filter "*.hlm" -File -Recurse
+
+    # Create the artifact directory if it doesn't exist
+    $artifactDirectory = "$(Build.ArtifactStagingDirectory)"
+    New-Item -Path $artifactDirectory -ItemType Directory -Force
+
+    # Copy the .hlm files to the artifact directory
+    $hlmFiles | ForEach-Object {
+      $destinationPath = Join-Path -Path $artifactDirectory -ChildPath $_.Name
+      Copy-Item -Path $_.FullName -Destination $destinationPath -Force
+      Write-Host "Copied $($_.FullName) to $destinationPath"
+    }
+  displayName: 'Find and Copy .hlm Files to Artifact Staging Directory'
+
+
+- powershell: |
+    # Define paths
+    $sourceDirectory = "$(Build.ArtifactStagingDirectory)/"
+    $destinationDirectory = "$(Build.ArtifactStagingDirectory)/unzipped"
+
+    # Create the destination directory if it doesn't exist
+    if (-Not (Test-Path -Path $destinationDirectory -PathType Container)) {
+      New-Item -Path $destinationDirectory -ItemType Directory -Force
+    }
+
+    # Get a list of all .hlm files in the source directory
+    $hlmFiles = Get-ChildItem -Path $sourceDirectory -Filter "*.hlm"
+
+    # Loop through and process each .hlm file
+    foreach ($hlmFile in $hlmFiles) {
+      $hlmFileName = $hlmFile.Name
+      $zipFileName = $hlmFileName -replace ".hlm$", ".zip"
+      $fileNameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($hlmFile)
+
+      # Rename the .hlm file to .zip
+      Rename-Item -Path $hlmFile.FullName -NewName $zipFileName -Force
+      Write-Host "Renamed $hlmFileName to $zipFileName"
+      
+      # Unzip the .zip file into the destination directory
+      Expand-Archive -Path $sourceDirectory\$zipFileName -DestinationPath "$destinationDirectory\$fileNameWithoutExtension" -Force
+      Write-Host "Unzipped $zipFileName into $destinationDirectory"
+      
+      # Rename the .zip file back to .hlm
+      Rename-Item -Path "$sourceDirectory\$zipFileName" -NewName $hlmFileName -Force
+      Write-Host "Renamed $zipFileName back to $hlmFileName"
+    }
+  displayName: 'Unzip Artifacts'
+
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+- powershell: |
+    if ($env:SONARQUBE_QUALITYGATE_STATUS -eq "ERROR") {
+        Write-Host "##vso[task.setvariable variable=buildResult;]failed"
+    }

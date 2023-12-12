@@ -1,0 +1,119 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build workflow
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: 17
+        distribution: 'oracle'
+        
+    - name: Run PowerShell Script
+      run: |
+        # Use the 'Get-Location' cmdlet to get the current directory
+        $currentDirectory = Get-Location
+        Write-Host "Current Directory: $currentDirectory"
+        
+    - name: Checkout Code
+      uses: actions/checkout@v2
+      with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1
+    
+    - name: Create Build Directory
+      run: mkdir _build
+    
+    
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v3
+      with:
+        path: ~\sonar\cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+    - name: Cache SonarCloud scanner
+      id: cache-sonar-scanner
+      uses: actions/cache@v3
+      with:
+        path: .\.sonar\scanner
+        key: ${{ runner.os }}-sonar-scanner
+        restore-keys: ${{ runner.os }}-sonar-scanner
+        
+    - name: Install SonarCloud scanner
+      if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: |
+        New-Item -Path .\.sonar\scanner -ItemType Directory
+        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+        
+    - name: Build and analyze
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      shell: pwsh
+      run: |
+        .\.sonar\scanner\dotnet-sonarscanner begin /k:"devops2023nguyen365_olb_module_02" /o:"devops2023nguyen365" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+        msbuild.exe PS.OLB.sln /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
+        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+   
+    - name: Build Solution
+      run: |
+        msbuild.exe PS.OLB.sln /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
+    - name: Run PowerShell Script
+      run: |
+        # Use the 'Get-Location' cmdlet to get the current directory
+        $currentDirectory = Get-Location
+        Write-Host "Current Directory: $currentDirectory"
+        
+        # Find all .hlm files recursively in $currentDirectory
+        $hlmFiles = Get-ChildItem -Path $currentDirectory -Filter "*.hlm" -File -Recurse
+
+        # Copy the .hlm files to the _build directory
+        $hlmFiles | ForEach-Object {
+          $destinationPath = Join-Path -Path $currentDirectory/_build -ChildPath $_.Name
+          Copy-Item -Path $_.FullName -Destination $destinationPath -Force
+          Write-Host "Copied $($_.FullName) to $destinationPath"
+        }
+
+        # Unzip HLM files
+        # Get a list of all .hlm files in the _build
+        $packageFiles = Get-ChildItem -Path $currentDirectory/_build -Filter "*.hlm"
+    
+        # Loop through and process each .hlm file
+        foreach ($packageFile in $packageFiles) {
+          $hlmFileName = $packageFile.Name
+          $zipFileName = $hlmFileName -replace ".hlm$", ".zip"
+          $fileNameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($packageFile)
+    
+          # Rename the .hlm file to .zip
+          Rename-Item -Path $packageFile.FullName -NewName $zipFileName -Force
+          Write-Host "Renamed $hlmFileName to $zipFileName"
+          
+          # Unzip the .zip file into the destination directory
+          Expand-Archive -Path $currentDirectory/_build/$zipFileName -DestinationPath "$currentDirectory/_build/unzipped/$fileNameWithoutExtension" -Force
+          Write-Host "Unzipped $zipFileName into $currentDirectory/_build/unzipped"
+          
+          # Rename the .zip file back to .hlm
+          Rename-Item -Path "$currentDirectory/_build/$zipFileName" -NewName $hlmFileName -Force
+          Write-Host "Renamed $zipFileName back to $hlmFileName"
+        }
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: drop
+        path: ./_build  
