@@ -2,6 +2,10 @@ name: Deployment workflow
 
 # Controls when the action will run. 
 on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   # Triggers the workflow on manual trigger
   workflow_dispatch:
 
