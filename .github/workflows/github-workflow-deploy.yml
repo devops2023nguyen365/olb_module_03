@@ -1,0 +1,46 @@
+name: Deployment workflow
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on manual trigger
+  workflow_dispatch:
+
+jobs:
+  dev-deployment:
+    runs-on: 
+      group: UAT
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Run a one-line script in DEV
+      run: echo Hello, world!
+
+    - name: Download Artifacts for DEV
+      uses: actions/download-artifact@v4
+
+    - name: Execute PowerShell Scripts for DEV
+      run: |
+        # Add your PowerShell commands here
+        echo "PowerShell scripts for DEV go here"
+      shell: pwsh
+
+  uat-deployment:
+    needs: dev-deployment
+    runs-on: 
+      group: DR
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Run a one-line script in UAT
+      run: echo Hello, world!
+
+    - name: Download Artifacts for UAT
+      uses: actions/download-artifact@v4
+
+    - name: Execute PowerShell Scripts for UAT
+      run: |
+        # Add your PowerShell commands here
+        echo "PowerShell scripts for UAT go here"
+      shell: pwsh

@@ -12,7 +12,8 @@ on:
 jobs:
   build:
 
-    runs-on: self-hosted
+    runs-on: 
+      group: BUILD
 
     steps:
     - name: Set up JDK 17
