@@ -11,7 +11,8 @@ on:
 
 jobs:
   dev-deployment:
-    runs-on: self-hosted
+    runs-on: 
+      group: DEV
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -33,7 +34,8 @@ jobs:
 
   uat-deployment:
     needs: dev-deployment
-    runs-on: ubuntu-latest # Modify this according to your deployment environment
+    runs-on: 
+      group: UAT
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
