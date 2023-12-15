@@ -17,7 +17,9 @@ jobs:
       run: echo Hello, world!
 
     - name: Download Artifacts for DEV
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v2
+      with:
+        name: drop
 
     - name: Execute PowerShell Scripts for DEV
       run: |
@@ -37,7 +39,9 @@ jobs:
       run: echo Hello, world!
 
     - name: Download Artifacts for UAT
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v2
+      with:
+        name: drop
 
     - name: Execute PowerShell Scripts for UAT
       run: |
