@@ -114,7 +114,7 @@ jobs:
           Write-Host "Renamed $zipFileName back to $hlmFileName"
         }
     - name: Upload artifact
-      uses: actions/upload-artifact@v1.0.0
+      uses: actions/upload-artifact@v2
       with:
         name: drop
         path: ./_build  
