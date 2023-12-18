@@ -4,6 +4,7 @@
 name: Build workflow
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main_default" ]
   pull_request:
