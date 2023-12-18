@@ -64,12 +64,10 @@ jobs:
         path: ./_build  
         
   dev-deployment:
-    #runs-on: 
-    #  group: UAT
     runs-on: ${{ matrix.runner_label }}
     strategy:
       matrix:
-        runner_lable: ['OB-WFE-D4-UAT1','OB-WFE-D4-UAT2','OB-WFE-D4-UAT3']
+        runner_label: ['OB-WFE-D4-UAT1','OB-WFE-D4-UAT2','OB-WFE-D4-UAT3']
     needs: create-deployment-artifacts
     steps:
     - name: Run a one-line script in DEV
