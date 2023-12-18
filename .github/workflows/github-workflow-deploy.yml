@@ -120,7 +120,7 @@ jobs:
 
         # Loop through each subfolder and copy it to the destination
         foreach ($subfolder in $subfolders) {
-            Copy-Item -Path $sourcePath/$subfolder.Name -Destination $destinationPath -Recurse -Force
+            Copy-Item -Path $subfolder -Destination $destinationPath -Recurse -Force
         }
       shell: pwsh      
     - name: "Start IIS"
