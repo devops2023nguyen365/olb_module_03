@@ -109,7 +109,7 @@ jobs:
         Write-Host "Deploy package to HLM folder"
         $currentDirectory = Get-Location
         # Define source and destination folders
-        $sourcePath = "$currentDirectory/drop/unzipped/"
+        $sourcePath = "$currentDirectory/unzipped/"
         $destinationPath = "C:\Fiserv\Architect\Build\2023\2268New\Portal\hlm"
               
         # Get a list of all subfolders in the source folder
