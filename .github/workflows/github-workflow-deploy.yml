@@ -9,7 +9,7 @@ jobs:
   create-deployment-artifacts:
     name: Create Deployment artifacts
     runs-on:
-      group: DEV
+      group: BUILD
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
@@ -62,16 +62,14 @@ jobs:
       with:
         name: drop
         path: ./_build  
-        
+  
   dev-deployment:
-    runs-on: ${{ matrix.runner_label }}
-    strategy:
-      matrix:
-        runner_label: ['OB-WFE-D4-UAT1','OB-WFE-D4-UAT2','OB-WFE-D4-UAT3']
-    needs: create-deployment-artifacts
+    runs-on:
+      group: DEV
+    needs: [create-deployment-artifacts]
     steps:
-    - name: Run a one-line script in DEV
-      run: echo Deploying on ${{ matrix.runner_label }}
+    - name: Deploying on DEV
+      run: echo Deploying on DEV
 
     - name: Download Artifacts for DEV
       uses: actions/download-artifact@v2
@@ -83,21 +81,44 @@ jobs:
         # Add your PowerShell commands here
         echo "PowerShell scripts for DEV go here"
       shell: pwsh
-
+      
   uat-deployment:
+    runs-on: ${{ matrix.runner_label }}
+    strategy:
+      matrix:
+        runner_label: ['OB-WFE-D4-UAT1','OB-WFE-D4-UAT2','OB-WFE-D4-UAT3']
     needs: [create-deployment-artifacts, dev-deployment]
-    runs-on: 
-      group: DR
     steps:
-    - name: Run a one-line script in UAT
-      run: echo Hello, world!
+    - name: Deploying on ${{ matrix.runner_label }}
+      run: echo Deploying on ${{ matrix.runner_label }}
 
-    - name: Download Artifacts for UAT
+    - name: Download Artifacts for ${{ matrix.runner_label }}
       uses: actions/download-artifact@v2
       with:
         name: drop
 
-    - name: Execute PowerShell Scripts for UAT
+    - name: Execute PowerShell Scripts for  ${{ matrix.runner_label }}
+      run: |
+        # Add your PowerShell commands here
+        echo "PowerShell scripts for DEV go here"
+      shell: pwsh
+
+  dr-deployment:
+    needs: [create-deployment-artifacts, dev-deployment, uat-deployment]
+    runs-on: ${{ matrix.runner_label }}
+    strategy:
+      matrix:
+        runner_label: ['OB-WFE-D4-DR1','OB-WFE-D4-DR2','OB-WFE-D4-DR4']
+    steps:
+    - name: Deploying on ${{ matrix.runner_label }}
+      run: echo Hello, world!
+
+    - name: Download Artifacts for ${{ matrix.runner_label }}
+      uses: actions/download-artifact@v2
+      with:
+        name: drop
+
+    - name: Execute PowerShell Scripts for ${{ matrix.runner_label }}
       run: |
         # Add your PowerShell commands here
         echo "PowerShell scripts for UAT go here"
