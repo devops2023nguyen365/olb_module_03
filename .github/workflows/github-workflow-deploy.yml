@@ -116,7 +116,7 @@ jobs:
         $destinationPath = "C:\Fiserv\Architect\Build\2023\2268New\Portal\hlm"
               
         # Get a list of all subfolders in the source folder
-        $subfolders = Get-ChildItem -Path $sourceFolder -Directory
+        $subfolders = Get-ChildItem -Path $sourcePath -Directory
 
         # Loop through each subfolder and copy it to the destination
         foreach ($subfolder in $subfolders) {
