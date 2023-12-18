@@ -66,6 +66,7 @@ jobs:
   dev-deployment:
     runs-on: 
       group: UAT
+    needs: create-deployment-artifacts
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -85,7 +86,7 @@ jobs:
       shell: pwsh
 
   uat-deployment:
-    needs: dev-deployment
+    needs: [create-deployment-artifacts, dev-deployment]
     runs-on: 
       group: DR
     steps:
