@@ -66,6 +66,8 @@ jobs:
   dev-deployment:
     runs-on:
       group: DEV
+    environment: 
+      name: DEV      
     needs: [create-deployment-artifacts]
     steps:
     - name: Deploying on DEV
@@ -84,6 +86,8 @@ jobs:
       
   uat-deployment:
     runs-on: ${{ matrix.runner_label }}
+    environment: 
+      name: UAT       
     strategy:
       matrix:
         runner_label: ['OB-WFE-D4-UAT1','OB-WFE-D4-UAT2','OB-WFE-D4-UAT3']
