@@ -119,3 +119,5 @@ jobs:
       with:
         name: drop
         path: ./_build  
+    - name: Report status
+      run: echo "# Code has been built, scanned and analyzed. HLM package was extracted successfully." >> $GITHUB_STEP_SUMMARY
