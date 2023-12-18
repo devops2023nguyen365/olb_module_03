@@ -68,9 +68,6 @@ jobs:
       group: UAT
     needs: create-deployment-artifacts
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
     - name: Run a one-line script in DEV
       run: echo Hello, world!
 
@@ -90,9 +87,6 @@ jobs:
     runs-on: 
       group: DR
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
     - name: Run a one-line script in UAT
       run: echo Hello, world!
 
