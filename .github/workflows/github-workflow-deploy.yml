@@ -110,6 +110,8 @@ jobs:
   dr-deployment:
     needs: [create-deployment-artifacts, dev-deployment, uat-deployment]
     runs-on: ${{ matrix.runner_label }}
+    environment: 
+      name: DR 
     strategy:
       matrix:
         runner_label: ['OB-WFE-D4-DR1','OB-WFE-D4-DR2','OB-WFE-D4-DR4']
