@@ -83,6 +83,50 @@ jobs:
         # Add your PowerShell commands here
         echo "PowerShell scripts for DEV go here"
       shell: pwsh
+    - name: Stop IIS
+      run: |
+        Stop-Service -Name "W3SVC" -Force
+        Write-Host "IIS has been stopped."
+      shell: pwsh
+    - name: "Backup OLB folder to backup folder"
+      run: |
+        Write-Host "Backup OLB folder to backup folder"
+        # Define source and destination paths
+        $currentTimestamp = Get-Date -Format "-yyyy-MM-dd-HH-mm-ss"
+        $sourcePath = 'C:\Fiserv\Architect\Build\2023\2268New'
+        $destinationPath = 'D:\Backup\Portal' + $currentTimestamp + '\2268'
+
+        # Check if the destination folder exists, and create it if not
+        if (-Not (Test-Path -Path $destinationPath -PathType Container)) {
+          New-Item -Path $destinationPath -ItemType Directory -Force
+        }
+
+        # Copy the contents of the source folder to the destination folder
+        Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
+      shell: pwsh
+    - name: "Deploy package to HLM folder"
+      run: |
+        Write-Host "Deploy package to HLM folder"
+        $currentDirectory = Get-Location
+        # Define source and destination folders
+        $sourcePath = "$currentDirectory/drop/unzipped/"
+        $destinationPath = "C:\Fiserv\Architect\Build\2023\2268New\Portal\hlm"
+              
+        # Get a list of all subfolders in the source folder
+        $subfolders = Get-ChildItem -Path $sourceFolder -Directory
+
+        # Loop through each subfolder and copy it to the destination
+        foreach ($subfolder in $subfolders) {
+            Copy-Item -Path $sourcePath/$subfolder.Name -Destination $destinationPath -Recurse -Force
+        }
+      shell: pwsh      
+    - name: "Start IIS"
+      run: |
+        # Start IIS
+        Start-Service -Name "W3SVC"
+        Write-Host "IIS has been started."
+      shell: pwsh            
+                  
       
   uat-deployment:
     runs-on: ${{ matrix.runner_label }}
@@ -106,7 +150,24 @@ jobs:
         # Add your PowerShell commands here
         echo "PowerShell scripts for DEV go here"
       shell: pwsh
+    - name: "Stop IIS"
+      run: |
+        Write-Host "Start IIS"
+      shell: pwsh
+    - name: "Backup OLB folder to backup folder"
+      run: |
+        Write-Host "Backup OLB folder to backup folder"
+      shell: pwsh
+    - name: "Deploy package to HLM folder"
+      run: |
+        Write-Host "Deploy package to HLM folder"
+      shell: pwsh      
+    - name: "Start IIS"
+      run: |
+        Write-Host "Start IIS"
+      shell: pwsh            
 
+                 
   dr-deployment:
     needs: [create-deployment-artifacts, dev-deployment, uat-deployment]
     runs-on: ${{ matrix.runner_label }}
@@ -129,3 +190,20 @@ jobs:
         # Add your PowerShell commands here
         echo "PowerShell scripts for UAT go here"
       shell: pwsh
+    - name: "Stop IIS"
+      run: |
+        Write-Host "Start IIS"
+      shell: pwsh
+    - name: "Backup OLB folder to backup folder"
+      run: |
+        Write-Host "Backup OLB folder to backup folder"
+      shell: pwsh
+    - name: "Deploy package to HLM folder"
+      run: |
+        Write-Host "Deploy package to HLM folder"
+      shell: pwsh      
+    - name: "Start IIS"
+      run: |
+        Write-Host "Start IIS"
+      shell: pwsh            
+                 
