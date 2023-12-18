@@ -209,4 +209,5 @@ jobs:
       run: |
         Write-Host "Start IIS"
       shell: pwsh            
-                 
+    - name: Report status
+      run: echo "# Code has been built and deployed successfully." >> $GITHUB_STEP_SUMMARY                 
