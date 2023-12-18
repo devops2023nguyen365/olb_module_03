@@ -12,7 +12,7 @@ jobs:
       group: BUILD
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Setup MSBuild
@@ -58,7 +58,7 @@ jobs:
           Write-Host "Renamed $zipFileName back to $hlmFileName"
         }
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: drop
         path: ./_build  
@@ -74,7 +74,7 @@ jobs:
       run: echo Deploying on DEV
 
     - name: Download Artifacts for DEV
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: drop
 
@@ -97,7 +97,7 @@ jobs:
       run: echo Deploying on ${{ matrix.runner_label }}
 
     - name: Download Artifacts for ${{ matrix.runner_label }}
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: drop
 
@@ -118,7 +118,7 @@ jobs:
       run: echo Hello, world!
 
     - name: Download Artifacts for ${{ matrix.runner_label }}
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: drop
 
