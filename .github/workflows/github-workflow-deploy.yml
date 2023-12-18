@@ -6,6 +6,63 @@ on:
   workflow_dispatch:
 
 jobs:
+  create-deployment-artifacts:
+    name: Create Deployment artifacts
+    runs-on:
+      group: DEV
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1
+    - name: Build Solution
+      run: |
+        mkdir _build
+        msbuild.exe PS.OLB.sln /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
+    - name: Extract HLM package
+      run: |
+        # Use the 'Get-Location' cmdlet to get the current directory
+        $currentDirectory = Get-Location
+        Write-Host "Current Directory: $currentDirectory"
+        
+        # Find all .hlm files recursively in $currentDirectory
+        $hlmFiles = Get-ChildItem -Path $currentDirectory -Filter "*.hlm" -File -Recurse
+        # Copy the .hlm files to the _build directory
+        $hlmFiles | ForEach-Object {
+          $destinationPath = Join-Path -Path $currentDirectory/_build -ChildPath $_.Name
+          Copy-Item -Path $_.FullName -Destination $destinationPath -Force
+          Write-Host "Copied $($_.FullName) to $destinationPath"
+        }
+        # Unzip HLM files
+        # Get a list of all .hlm files in the _build
+        $packageFiles = Get-ChildItem -Path $currentDirectory/_build -Filter "*.hlm"
+    
+        # Loop through and process each .hlm file
+        foreach ($packageFile in $packageFiles) {
+          $hlmFileName = $packageFile.Name
+          $zipFileName = $hlmFileName -replace ".hlm$", ".zip"
+          $fileNameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($packageFile)
+    
+          # Rename the .hlm file to .zip
+          Rename-Item -Path $packageFile.FullName -NewName $zipFileName -Force
+          Write-Host "Renamed $hlmFileName to $zipFileName"
+          
+          # Unzip the .zip file into the destination directory
+          Expand-Archive -Path $currentDirectory/_build/$zipFileName -DestinationPath "$currentDirectory/_build/unzipped/$fileNameWithoutExtension" -Force
+          Write-Host "Unzipped $zipFileName into $currentDirectory/_build/unzipped"
+          
+          # Rename the .zip file back to .hlm
+          Rename-Item -Path "$currentDirectory/_build/$zipFileName" -NewName $hlmFileName -Force
+          Write-Host "Renamed $zipFileName back to $hlmFileName"
+        }
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: drop
+        path: ./_build  
+        
   dev-deployment:
     runs-on: 
       group: UAT
