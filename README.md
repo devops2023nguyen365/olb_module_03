@@ -1,3 +1,6 @@
+![Build Status](https://github.com/devops2023nguyen365/olb_module_03/actions/workflows/github-workflow-build.yml/badge.svg)
+![Deploy Status](https://github.com/devops2023nguyen365/olb_module_03/actions/workflows/github-workflow-deploy.yml/badge.svg)
+
 # Introduction 
 TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
 
