@@ -30,7 +30,7 @@ jobs:
         Write-Host "Current Directory: $currentDirectory"
         
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
           
@@ -115,7 +115,7 @@ jobs:
           Write-Host "Renamed $zipFileName back to $hlmFileName"
         }
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: drop
         path: ./_build  
