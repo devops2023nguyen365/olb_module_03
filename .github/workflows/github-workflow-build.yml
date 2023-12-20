@@ -13,8 +13,8 @@ on:
 jobs:
   build:
 
-    runs-on: 
-      group: BUILD
+    runs-on: [self-hosted, ob_wfe_d4] 
+      # group: BUILD
 
     steps:
     - name: Set up JDK 17
