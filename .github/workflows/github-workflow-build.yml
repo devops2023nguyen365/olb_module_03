@@ -13,7 +13,7 @@ on:
 jobs:
   build:
 
-    runs-on: ['self-hosted'] 
+    runs-on: ['ob-wfe-d4'] 
       # group: BUILD
 
     steps:
